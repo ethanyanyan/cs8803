@@ -1,0 +1,39 @@
+# Xcode files
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.xcworkspace/xcuserdata
+*.xcodeproj/project.xcworkspace/xcuserdata
+!*.xccheckout
+
+# SwiftPM
+/.build
+/Packages
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build
+Carthage/Checkouts
+
+# Derived Data
+DerivedData/
+build/
+*.orig
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Others
+*.DS_Store
+*.swp
+*.swm
+*.class
+*.xcf
+.DS_Store?
