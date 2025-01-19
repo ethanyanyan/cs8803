@@ -12,6 +12,7 @@ target 'cs8803' do
   pod 'Firebase/Storage'
   pod 'Firebase/Analytics'
   pod 'Firebase/Crashlytics'
+  pod 'Firebase/Firestore'
 
   pod 'FBSDKLoginKit'
 
