@@ -20,19 +20,28 @@
 - Data includes `displayName`, `avatarURL`, `location`, etc.
 - The app reads and writes user data in `ProfileView`.
 
+- Profile Avatar Photo can be selected from user's Photos library. The photo is then uploaded and stored in Cloudinary,
+  and the URL is stored in Firestore as well.
+
 ## 3. Location
 
 - Planned: integrate Core Location for automatic location fetching & geocoding.
 - Currently: manual text field input.
 
-## 4. Future Enhancements
+## 4. Friend System
+
+- Users can view a friends list and add/delete friends.
+- Planned: Users can only view photos of friends.
+
+## 5. Future Enhancements
 
 - **Social Logins**: Integrate Google / Facebook using pods.
 - **Image Caching**: Efficiently cache images using SwiftUI or third-party libraries (e.g., SDWebImageSwiftUI).
 - **Notifications**: For likes, comments, or new followers.
 - **Access Control**: Fine-tune security rules in Firebase.
 
-## 5. Learnings Thus Far
+## 6. Learnings Thus Far
 
 - **Steep Learning Curve**: I have no prior experience with developing in Swift or iOS. Therefore, the initial learning curve is very steep. Youtube channels such as @iOSAcademy as suggested by the CS8803-MAS Teaching Staff did help to ease this initial learning curve slightly.
 - **Build Failure**: The very first build kept failing due to User Sandboxing issues, had to search stackoverflow.com to learn about this, turn it off, before successfully building the project.
+- **Restrictive API**: Firebase does not provide Firestore in the free tier. Hence, I was unable to store images without upgrading to a pay-as-you-go tier. I opted to use Cloudinary instead, which has free storage of images in its free tier. Downsides of this include limited credits of the account with Cloudinary.

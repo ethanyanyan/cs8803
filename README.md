@@ -6,6 +6,7 @@ This is a sample iOS application built with **SwiftUI** and **Firebase**, demons
 - Basic Profile Management
 - Sign In / Sign Up Flows
 - Tab-based UI
+- Friend system
 
 ## Requirements
 
@@ -38,3 +39,7 @@ This is a sample iOS application built with **SwiftUI** and **Firebase**, demons
 - Allow commenting and viewing of only friend's comments
 - Implement social login (Google, Facebook)
 - Add location-based features
+
+## Credits
+
+- Cloudinary: API Usage to upload and store photos
