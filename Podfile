@@ -14,6 +14,8 @@ target 'cs8803' do
   pod 'Firebase/Crashlytics'
   pod 'Firebase/Firestore'
 
+  pod 'Cloudinary', '~> 3.1.0'
+
   pod 'FBSDKLoginKit'
 
   pod 'GoogleSignIn'

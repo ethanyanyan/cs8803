@@ -5,6 +5,7 @@
 *.xcworkspace/xcuserdata
 *.xcodeproj/project.xcworkspace/xcuserdata
 !*.xccheckout
+*.xcconfig
 
 # SwiftPM
 /.build
