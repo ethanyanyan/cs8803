@@ -20,6 +20,11 @@ struct HomeView: View {
                 .tabItem {
                     Label("Post", systemImage: "plus.circle")
                 }
+            
+            FriendsView()
+                .tabItem {
+                    Label("Friends", systemImage: "person.2")
+                }
 
             ProfileView()
                 .tabItem {

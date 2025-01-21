@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseFirestore
 
 struct LoginView: View {
     @State private var email: String = ""
@@ -15,7 +16,10 @@ struct LoginView: View {
     @State private var authError: String?
 
     private let backgroundGradient = LinearGradient(
-        gradient: Gradient(colors: [Color.blue, Color.cyan]),
+        gradient: Gradient(colors: [
+            Color(red: 0.65, green: 0.85, blue: 1.0),  // A pale sky-blue
+            Color(red: 0.78, green: 0.92, blue: 1.0)
+        ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
@@ -109,13 +113,24 @@ struct LoginView: View {
     }
 
     private func signUpUser() {
-        Auth.auth().createUser(withEmail: email, password: password) { _, error in
+        Auth.auth().createUser(withEmail: email, password: password) { result, error in
             if let error = error {
                 authError = error.localizedDescription
             } else {
+                // Successfully signed up
                 authError = nil
-                // Successfully signed up;
-                // AppView will update automatically
+                
+                if let user = result?.user {
+                    // Save email to Firestore
+                    let docRef = Firestore.firestore().collection("users").document(user.uid)
+                    docRef.setData(["email": self.email], merge: true) { err in
+                        if let err = err {
+                            print("Error saving email to Firestore: \(err.localizedDescription)")
+                        } else {
+                            print("Email saved to Firestore for user \(user.uid).")
+                        }
+                    }
+                }
             }
         }
     }

@@ -5,12 +5,6 @@
 //  Created by Ethan Yan on 19/1/25.
 //
 
-
-//
-//  FeedView.swift
-//  cs8803
-//
-
 import SwiftUI
 
 struct FeedView: View {

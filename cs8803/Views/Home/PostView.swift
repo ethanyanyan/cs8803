@@ -5,12 +5,6 @@
 //  Created by Ethan Yan on 19/1/25.
 //
 
-
-//
-//  PostView.swift
-//  cs8803
-//
-
 import SwiftUI
 
 struct PostView: View {

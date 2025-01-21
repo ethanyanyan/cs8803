@@ -7,7 +7,8 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseStorage
-import PhotosUI // for picking images
+import PhotosUI
+import CoreLocation
 
 struct ProfileView: View {
     @State private var displayName: String = ""
@@ -21,6 +22,9 @@ struct ProfileView: View {
 
     // For status messages or errors
     @State private var statusMessage: String?
+
+    // Observe custom LocationManager
+    @StateObject private var locationManager = LocationManager()
 
     // Firestore references
     private let db = Firestore.firestore()
@@ -92,6 +96,11 @@ struct ProfileView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     TextField("Location", text: $location)
+
+                    Button("Use Current Location") {
+                        locationManager.requestPermission()
+                    }
+                    .padding(.top, 8)
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -126,20 +135,25 @@ struct ProfileView: View {
                 .background(Color.red)
                 .foregroundColor(.white)
                 .cornerRadius(8)
-
             }
             .padding(.top, 20)
             .navigationTitle("Profile")
         }
+        // On appear, load profile from Firestore
         .onAppear {
             loadProfile()
+        }
+        // If userLocation changes, reverse geocode to get city, state, etc.
+        .onChange(of: locationManager.userLocation) { newLocation in
+            guard let loc = newLocation else { return }
+            reverseGeocode(location: loc)
         }
     }
 
     // MARK: - Load Profile
     private func loadProfile() {
         guard let user = Auth.auth().currentUser else {
-            statusMessage = "No user found."
+            statusMessage = "User not found. Please log in or sign up."
             return
         }
 
@@ -158,7 +172,8 @@ struct ProfileView: View {
                 self.displayName = data["displayName"] as? String ?? ""
                 self.location = data["location"] as? String ?? ""
                 
-                if let avatarString = data["avatarURL"] as? String, let url = URL(string: avatarString) {
+                if let avatarString = data["avatarURL"] as? String,
+                   let url = URL(string: avatarString) {
                     self.avatarURL = url
                 }
             }
@@ -170,7 +185,7 @@ struct ProfileView: View {
         guard let user = Auth.auth().currentUser else { return }
 
         let storageRef = storage.reference().child("avatars/\(user.uid).jpg")
-        storageRef.putData(data, metadata: nil) { metadata, error in
+        storageRef.putData(data, metadata: nil) { _, error in
             if let error = error {
                 statusMessage = "Error uploading avatar: \(error.localizedDescription)"
                 return
@@ -184,7 +199,8 @@ struct ProfileView: View {
                 if let url = url {
                     self.avatarURL = url
                     // Save to Firestore
-                    self.db.collection("users").document(user.uid).setData(["avatarURL": url.absoluteString], merge: true)
+                    self.db.collection("users").document(user.uid).setData(["avatarURL": url.absoluteString],
+                                                                          merge: true)
                     statusMessage = "Avatar updated"
                 }
             }
@@ -197,7 +213,8 @@ struct ProfileView: View {
 
         let userData: [String: Any] = [
             "displayName": displayName,
-            "location": location
+            "location": location,
+            "email": email
             // "avatarURL" is set in uploadAvatar
         ]
 
@@ -206,6 +223,28 @@ struct ProfileView: View {
                 statusMessage = "Error saving profile: \(error.localizedDescription)"
             } else {
                 statusMessage = "Profile updated"
+            }
+        }
+    }
+    
+    // MARK: - Reverse Geocode
+    private func reverseGeocode(location: CLLocation) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { placemarks, error in
+            if let error = error {
+                print("Reverse geocode error: \(error.localizedDescription)")
+                return
+            }
+            if let placemark = placemarks?.first {
+                // For example, city + state/country
+                let city = placemark.locality ?? ""
+                let state = placemark.administrativeArea ?? ""
+                let country = placemark.country ?? ""
+                
+                // Combine how you'd like
+                self.location = [city, state, country]
+                    .filter { !$0.isEmpty }
+                    .joined(separator: ", ")
             }
         }
     }
