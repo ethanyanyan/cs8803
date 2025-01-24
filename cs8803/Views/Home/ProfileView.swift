@@ -34,6 +34,9 @@ struct ProfileView: View {
     // Firestore reference
     private let db = Firestore.firestore()
     
+    // Image Upload Service
+    private let imageUploadService = ImageUploadService()
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 16) {
@@ -77,8 +80,8 @@ struct ProfileView: View {
                     Task {
                         if let data = try? await newValue?.loadTransferable(type: Data.self) {
                             selectedImageData = data
-                            // Upload to Cloudinary
-                            uploadAvatarToCloudinary(data: data)
+                            // Upload to Cloudinary using ImageUploadService
+                            uploadAvatar(data: data)
                         }
                     }
                 }
@@ -208,53 +211,30 @@ struct ProfileView: View {
         }
     }
     
-    // MARK: - Upload Avatar (Cloudinary)
-    private func uploadAvatarToCloudinary(data: Data) {
+    // MARK: - Upload Avatar Using ImageUploadService
+    private func uploadAvatar(data: Data) {
         guard let user = Auth.auth().currentUser else { return }
-        
-        let cloudName = "dcvqrt5p0"
-        let uploadPreset = "ios_unsigned_preset"
-        
-        let config = CLDConfiguration(cloudName: cloudName, secure: true)
-        let cloudinary = CLDCloudinary(configuration: config)
-        
-        let params = CLDUploadRequestParams()
-        params.setUploadPreset(uploadPreset)
-        params.setPublicId("avatars-\(user.uid)")
-        
-        let uploadRequest = cloudinary.createUploader().upload(
-            data: data,
-            uploadPreset: uploadPreset,
-            params: params
-        )
-        
-        uploadRequest.response { (result, error) in
-            if let error = error {
-                self.statusMessage = "Cloudinary upload error: \(error.localizedDescription)"
-                print("Cloudinary error: \(error)")
-                return
-            }
-            guard let result = result,
-                  let secureUrl = result.secureUrl else {
-                self.statusMessage = "No secure URL returned from Cloudinary."
-                return
-            }
-            
-            self.avatarURL = URL(string: secureUrl)
-            let db = Firestore.firestore()
-            db.collection("users").document(user.uid).setData(["avatarURL": secureUrl],
-                                                              merge: true) { err in
-                if let err = err {
-                    self.statusMessage = "Error saving Cloudinary URL: \(err.localizedDescription)"
-                } else {
-                    self.statusMessage = "Avatar updated!"
-                }
+
+        let publicId = "avatars-\(user.uid)"
+        imageUploadService.uploadImage(data: data, publicId: publicId) { result in
+            switch result {
+            case .success(let secureUrl):
+                self.avatarURL = URL(string: secureUrl)
+                self.saveAvatarURLToFirestore(url: secureUrl)
+            case .failure(let error):
+                self.statusMessage = "Upload failed: \(error.localizedDescription)"
             }
         }
-        .progress { progress in
-            let uploaded = progress.completedUnitCount
-            let total = progress.totalUnitCount
-            print("Cloudinary upload progress: \(uploaded) / \(total)")
+    }
+
+    private func saveAvatarURLToFirestore(url: String) {
+        guard let user = Auth.auth().currentUser else { return }
+        db.collection("users").document(user.uid).setData(["avatarURL": url], merge: true) { error in
+            if let error = error {
+                self.statusMessage = "Error saving avatar URL: \(error.localizedDescription)"
+            } else {
+                self.statusMessage = "Avatar updated!"
+            }
         }
     }
     
@@ -266,7 +246,7 @@ struct ProfileView: View {
             "displayName": displayName,
             "location": location,
             "email": email
-            // "avatarURL" is set in uploadAvatarToCloudinary
+            // "avatarURL" is set in uploadAvatar
         ]
         
         db.collection("users").document(user.uid).setData(userData, merge: true) { error in
