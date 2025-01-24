@@ -15,12 +15,27 @@ struct PostView: View {
     @State private var selectedImageData: Data?
     @State private var caption: String = ""
     @State private var statusMessage: String?
+    @State private var uploadProgress: Double? = nil // For progress bar
     private let imageUploadService = ImageUploadService()
     private let db = Firestore.firestore()
 
     var body: some View {
         NavigationView {
             VStack {
+                // Display the selected image if available
+                if let imageData = selectedImageData, let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 300, maxHeight: 300)
+                        .cornerRadius(8)
+                        .padding(.bottom, 16)
+                } else {
+                    Text("No Image Selected")
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 16)
+                }
+
                 PhotosPicker(
                     selection: $selectedItem,
                     matching: .images,
