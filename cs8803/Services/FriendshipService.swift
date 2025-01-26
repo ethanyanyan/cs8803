@@ -31,13 +31,6 @@ class FriendshipService {
                 "lastUpdated": FieldValue.serverTimestamp()
             ], forDocument: docRefInB, merge: true)
 
-            // 2) Create or update doc in A’s subcollection => pending
-            transaction.setData([
-                "status": "pending",
-                "requestSender": userA,
-                "lastUpdated": FieldValue.serverTimestamp()
-            ], forDocument: docRefInA, merge: true)
-
             return nil
         }) { (_, error) in
             completion(error)
