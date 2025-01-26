@@ -18,16 +18,19 @@ class FriendshipService {
         let userADocRef = db.collection("users").document(userA)
         let userBDocRef = db.collection("users").document(userB)
 
+        // References for each subcollection doc
         let docRefInB = userBDocRef.collection("friends").document(userA)
         let docRefInA = userADocRef.collection("friends").document(userB)
 
         db.runTransaction({ transaction, errorPointer in
+            // 1) Create or update doc in B’s subcollection => pending
             transaction.setData([
                 "status": "pending",
                 "requestSender": userA,
                 "lastUpdated": FieldValue.serverTimestamp()
             ], forDocument: docRefInB, merge: true)
 
+            // 2) Create or update doc in A’s subcollection => pending
             transaction.setData([
                 "status": "pending",
                 "requestSender": userA,
@@ -47,15 +50,19 @@ class FriendshipService {
         let userBDocRef = db.collection("users").document(userB)
         let userADocRef = db.collection("users").document(userA)
         
+        // 1) Update B's record about A => accepted
         let docRefB = userBDocRef.collection("friends").document(userA)
+        // 2) Also create A's record about B => accepted
         let docRefA = userADocRef.collection("friends").document(userB)
         
         db.runTransaction({ transaction, errorPointer in
+            // B's doc => accepted
             transaction.setData([
                 "status": "accepted",
                 "lastUpdated": FieldValue.serverTimestamp()
             ], forDocument: docRefB, merge: true)
             
+            // A's doc => accepted
             transaction.setData([
                 "status": "accepted",
                 "lastUpdated": FieldValue.serverTimestamp()
