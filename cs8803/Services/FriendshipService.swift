@@ -90,13 +90,13 @@ class FriendshipService {
         }
     }
     
-    // MARK: - Fetch My Friends
-    func fetchAcceptedFriends(completion: @escaping ([String]) -> Void) {
+    // MARK: - Fetch My Friends (Accepted)
+    func fetchAcceptedFriends(completion: @escaping ([UserProfile]) -> Void) {
         guard let currentUID = Auth.auth().currentUser?.uid else {
             completion([])
             return
         }
-        
+
         db.collection("users")
             .document(currentUID)
             .collection("friends")
@@ -107,8 +107,93 @@ class FriendshipService {
                     completion([])
                     return
                 }
-                let friendIDs = snapshot?.documents.map { $0.documentID } ?? []
-                completion(friendIDs)
+
+                let friends = snapshot?.documents.compactMap { doc -> UserProfile? in
+                    let data = doc.data()
+                    return UserProfile(
+                        id: doc.documentID,
+                        displayName: data["displayName"] as? String ?? "(No Name)",
+                        email: data["email"] as? String ?? "(No Email)"
+                    )
+                } ?? []
+
+                completion(friends)
+            }
+    }
+
+    // MARK: - Fetch Pending Friend Requests
+    func fetchPendingRequests(completion: @escaping ([UserProfile]) -> Void) {
+        guard let currentUID = Auth.auth().currentUser?.uid else {
+            completion([])
+            return
+        }
+
+        db.collection("users")
+            .document(currentUID)
+            .collection("friends")
+            .whereField("status", isEqualTo: "pending")
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error fetching pending requests: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+
+                let pendingRequests = snapshot?.documents.compactMap { doc -> UserProfile? in
+                    let data = doc.data()
+                    return UserProfile(
+                        id: doc.documentID,
+                        displayName: data["displayName"] as? String ?? "(No Name)",
+                        email: data["email"] as? String ?? "(No Email)"
+                    )
+                } ?? []
+
+                completion(pendingRequests)
+            }
+    }
+
+    // MARK: - Fetch Users Not Friends (For ExploreFriendsView)
+    func fetchUsersNotFriends(completion: @escaping ([UserProfile]) -> Void) {
+        guard let currentUID = Auth.auth().currentUser?.uid else {
+            completion([])
+            return
+        }
+
+        // Step 1: Fetch friend IDs (both accepted and pending)
+        db.collection("users").document(currentUID).collection("friends")
+            .getDocuments { friendSnapshot, error in
+                if let error = error {
+                    print("Error fetching friends: \(error.localizedDescription)")
+                    completion([])
+                    return
+                }
+
+                var excludedUserIDs: Set<String> = [currentUID]
+                friendSnapshot?.documents.forEach { doc in
+                    excludedUserIDs.insert(doc.documentID)
+                }
+
+                // Step 2: Fetch all users and exclude friends
+                self.db.collection("users").getDocuments { snapshot, error in
+                    if let error = error {
+                        print("Error fetching users: \(error.localizedDescription)")
+                        completion([])
+                        return
+                    }
+
+                    let users = snapshot?.documents.compactMap { doc -> UserProfile? in
+                        let uid = doc.documentID
+                        guard !excludedUserIDs.contains(uid) else { return nil }
+                        let data = doc.data()
+                        return UserProfile(
+                            id: uid,
+                            displayName: data["displayName"] as? String ?? "(No Name)",
+                            email: data["email"] as? String ?? "(No Email)"
+                        )
+                    } ?? []
+
+                    completion(users)
+                }
             }
     }
 }
