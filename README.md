@@ -24,9 +24,16 @@ This is a sample iOS application built with **SwiftUI** and **Firebase**, demons
 - Posts are fetched in real-time from Firestore.
 
 ### Friend System
+The Friend System has two separate sections: 
 
-- Users can send, accept, and reject friend requests.
-- Only accepted friends and the user themselves can view posts in the feed.
+1. Explore Friends Tab
+      - Displays users who are not currently friends or do not have pending requests.
+      - Allows users to send friend requests with the Add Friend button.
+
+3. My Friends Tab
+      - Displays current friends and pending friend requests.
+      - Allows users to accept or reject imcoming friend requests.
+      - Users can remove existing freinds.
 
 ### Post Creation
 
