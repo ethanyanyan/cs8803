@@ -67,3 +67,5 @@
 - **Notifications**: Add push notifications for likes, comments, and friend requests.
 - **Commenting System**: Allow users to comment on posts.
 - **Access Control**: Further refine Firestore rules for enhanced data security.
+- **Unique Feature**: Users can only see other comments on friends' posts, who are also their friends.
+  They cannot see comments of those who are not their friends.

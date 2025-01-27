@@ -8,20 +8,36 @@
 import SwiftUI
 
 struct FriendsView: View {
+    @State private var selectedTab: FriendsTab = .explore
+
     var body: some View {
         NavigationView {
-            TabView {
-                ExploreFriendsView()
-                    .tabItem {
-                        Label("Explore", systemImage: "magnifyingglass")
-                    }
+            VStack {
+                // 1) Segment Picker up top
+                Picker("Choose View", selection: $selectedTab) {
+                    Text("Explore").tag(FriendsTab.explore)
+                    Text("My Friends").tag(FriendsTab.myFriends)
+                }
+                .pickerStyle(.segmented)
+                .padding()
 
-                MyFriendsView()
-                    .tabItem {
-                        Label("My Friends", systemImage: "person.2.fill")
-                    }
+                // 2) Show the corresponding subview based on selectedTab
+                switch selectedTab {
+                case .explore:
+                    ExploreFriendsView()
+                case .myFriends:
+                    MyFriendsView()
+                }
+                
+                Spacer()
             }
             .navigationTitle("Friends")
         }
     }
+}
+
+// An enum to track which segment is selected
+enum FriendsTab {
+    case explore
+    case myFriends
 }
